@@ -133,6 +133,11 @@
             @apply bg-red-600 text-white hover:bg-red-700 py-2 px-3; /* Smaller padding for remove */
         }
     </style>
+
+<!-- PDF & WhatsApp Sharing Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </head>
 <body class="bg-gray-50 flex flex-col items-center py-8">
 
@@ -207,6 +212,12 @@
                 Print Bill
             </button>
         </div>
+<div class="flex justify-center mt-4 no-print">
+  <button id="whatsappShareBtn" class="btn-base btn-primary bg-green-600 hover:bg-green-700">
+    Share via WhatsApp
+  </button>
+</div>
+
     </div>
 
     <!-- Bill Template Section -->
@@ -275,6 +286,12 @@
             <p>Signature</p>
             <p class="mt-8">Mob: 9826253013 Mob: 8085614075</p>
         </div>
+<div class="flex justify-center mt-4 no-print">
+  <button id="whatsappShareBtn" class="btn-base btn-primary bg-green-600 hover:bg-green-700">
+    Share via WhatsApp
+  </button>
+</div>
+
     </div>
 
     <script>
@@ -529,6 +546,37 @@
                     updateBillTemplate();
                 });
             });
+
+            
+// WhatsApp Share Button
+const whatsappBtn = document.getElementById('whatsappShareBtn');
+whatsappBtn.addEventListener('click', async () => {
+    inputContainer.classList.add('hidden');
+    billTemplate.classList.remove('hidden');
+
+    await new Promise(r => setTimeout(r, 300));
+
+    const canvas = await html2canvas(billTemplate);
+    const imgData = canvas.toDataURL('image/jpeg');
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const width = pdf.internal.pageSize.getWidth();
+    const height = pdf.internal.pageSize.getHeight();
+    pdf.addImage(imgData, 'JPEG', 0, 0, width, height);
+
+    const filename = `${refNumberInput.value || 'Bill'}.pdf`;
+    pdf.save(filename);
+
+    inputContainer.classList.remove('hidden');
+    billTemplate.classList.add('hidden');
+
+    const customerMobile = customerMobileInput.value;
+    const message = encodeURIComponent(`Hello, your bill (Ref: ${refNumberInput.value}) has been generated. Please find the attached PDF file.`);
+    let whatsappURL = `https://wa.me/${customerMobile}?text=${message}`;
+    window.open(whatsappURL, '_blank');
+});
+
 
             // Initial calculation and update
             calculateBill();
